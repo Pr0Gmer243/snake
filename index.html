@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <style>
+    body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: sans-serif;
+  background-color: #111;
+  color: #fff;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+canvas {
+  background-color: #222;
+  border: 2px solid #fff;
+}
+
+#score {
+  margin-top: 10px;
+  font-size: 18px;
+}
+
+  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>🐍 Snake Game</h1>
+  <canvas id="game" width="400" height="400"></canvas>
+  <p id="score">Score: 0</p>
+  <script src="script.js"></script>
+<script>
+  const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const gridSize = 20;
+const tileCount = canvas.width / gridSize;
+
+let snake = [{ x: 10, y: 10 }];
+let food = randomPosition();
+let velocity = { x: 0, y: 0 };
+let score = 0;
+
+function randomPosition() {
+  return {
+    x: Math.floor(Math.random() * tileCount),
+    y: Math.floor(Math.random() * tileCount),
+  };
+}
+
+function gameLoop() {
+  requestAnimationFrame(gameLoop);
+  if (++frame % 5 !== 0) return;
+
+  update();
+  draw();
+}
+
+let frame = 0;
+
+function update() {
+  const head = {
+    x: snake[0].x + velocity.x,
+    y: snake[0].y + velocity.y,
+  };
+
+  // Game Over Conditions
+  if (
+    head.x < 0 || head.x >= tileCount ||
+    head.y < 0 || head.y >= tileCount ||
+    snake.some(segment => segment.x === head.x && segment.y === head.y)
+  ) {
+    alert("Game Over! Score: " + score);
+    snake = [{ x: 10, y: 10 }];
+    velocity = { x: 0, y: 0 };
+    food = randomPosition();
+    score = 0;
+    document.getElementById("score").innerText = "Score: 0";
+    return;
+  }
+
+  snake.unshift(head);
+
+  // Eat food
+  if (head.x === food.x && head.y === food.y) {
+    food = randomPosition();
+    score++;
+    document.getElementById("score").innerText = "Score: " + score;
+  } else {
+    snake.pop();
+  }
+}
+
+function draw() {
+  ctx.fillStyle = "#222";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw food
+  ctx.fillStyle = "red";
+  ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+
+  // Draw snake
+  ctx.fillStyle = "lime";
+  for (let segment of snake) {
+    ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  switch (e.key) {
+    case "ArrowUp":
+      if (velocity.y === 0) velocity = { x: 0, y: -1 };
+      break;
+    case "ArrowDown":
+      if (velocity.y === 0) velocity = { x: 0, y: 1 };
+      break;
+    case "ArrowLeft":
+      if (velocity.x === 0) velocity = { x: -1, y: 0 };
+      break;
+    case "ArrowRight":
+      if (velocity.x === 0) velocity = { x: 1, y: 0 };
+      break;
+  }
+});
+
+gameLoop();
+</script>
+</body>
+</html>
