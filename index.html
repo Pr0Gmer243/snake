@@ -39,33 +39,35 @@ canvas {
   <p id="score">Score: 0</p>
   <script src="script.js"></script>
 <script>
-  const canvas = document.getElementById("game");
+const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 const gridSize = 20;
 const tileCount = canvas.width / gridSize;
 
 let snake = [{ x: 10, y: 10 }];
-let food = randomPosition();
+let food = getRandomPosition();
 let velocity = { x: 0, y: 0 };
 let score = 0;
+let gameStarted = false;
 
-function randomPosition() {
+function getRandomPosition() {
   return {
     x: Math.floor(Math.random() * tileCount),
     y: Math.floor(Math.random() * tileCount),
   };
 }
 
+let frame = 0;
 function gameLoop() {
   requestAnimationFrame(gameLoop);
   if (++frame % 5 !== 0) return;
 
-  update();
+  if (gameStarted) {
+    update();
+  }
   draw();
 }
-
-let frame = 0;
 
 function update() {
   const head = {
@@ -73,18 +75,14 @@ function update() {
     y: snake[0].y + velocity.y,
   };
 
-  // Game Over Conditions
+  // Game Over: wall or self collision
   if (
     head.x < 0 || head.x >= tileCount ||
     head.y < 0 || head.y >= tileCount ||
-    snake.some(segment => segment.x === head.x && segment.y === head.y)
+    snake.some((segment) => segment.x === head.x && segment.y === head.y)
   ) {
-    alert("Game Over! Score: " + score);
-    snake = [{ x: 10, y: 10 }];
-    velocity = { x: 0, y: 0 };
-    food = randomPosition();
-    score = 0;
-    document.getElementById("score").innerText = "Score: 0";
+    alert("💀 Game Over! Final Score: " + score);
+    resetGame();
     return;
   }
 
@@ -92,7 +90,7 @@ function update() {
 
   // Eat food
   if (head.x === food.x && head.y === food.y) {
-    food = randomPosition();
+    food = getRandomPosition();
     score++;
     document.getElementById("score").innerText = "Score: " + score;
   } else {
@@ -113,9 +111,26 @@ function draw() {
   for (let segment of snake) {
     ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
   }
+
+  if (!gameStarted) {
+    ctx.fillStyle = "white";
+    ctx.font = "18px sans-serif";
+    ctx.fillText("Press Arrow Key to Start", 100, canvas.height / 2);
+  }
+}
+
+function resetGame() {
+  snake = [{ x: 10, y: 10 }];
+  velocity = { x: 0, y: 0 };
+  food = getRandomPosition();
+  score = 0;
+  gameStarted = false;
+  document.getElementById("score").innerText = "Score: 0";
 }
 
 document.addEventListener("keydown", (e) => {
+  if (!gameStarted) gameStarted = true;
+
   switch (e.key) {
     case "ArrowUp":
       if (velocity.y === 0) velocity = { x: 0, y: -1 };
